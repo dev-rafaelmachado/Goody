@@ -1,3 +1,15 @@
+:root {
+  --primary-color: #2C2C2C;
+  --secundary-color: #5A5A5A;
+  --background-color: #F7F0F5;
+}
+
+[data-theme="dark"] {
+  --primary-color: #3A3A4D;
+  --secundary-color: #272734;
+  --background-color: #2D2D3D; 
+}
+
 * {
   margin: 0px;
   padding: 0px;
@@ -7,4 +19,9 @@
 html, body, #root{
   width: 100vw;
   height: 100vh;
+}
+
+body{
+  background: var(--background-color);
+  transition: background 0.3s ease-in-out;  
 }
