@@ -2,12 +2,14 @@
   --primary-color: #2C2C2C;
   --secundary-color: #5A5A5A;
   --background-color: #F7F0F5;
+  --text: #000000;
 }
 
 [data-theme="dark"] {
   --primary-color: #3A3A4D;
   --secundary-color: #272734;
-  --background-color: #2D2D3D; 
+  --background-color: #2D2D3D;
+  --text: #fff;
 }
 
 * {
