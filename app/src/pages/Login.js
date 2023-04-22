@@ -1,3 +1,4 @@
+import Style from "../css/pages/login.module.css"
 
 import { useEffect, useState } from "react";
 import useAuth from '../hooks/useAuth';
@@ -18,21 +19,20 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleLogin}>
-        <label htmlFor="email">Email:</label>
+    <div className={Style.main}>
+      <form className={Style.form} onSubmit={handleLogin}>
+        <h1>Login</h1>
         <input
           type="email"
-          id="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
+          placeholder="E-mail"
         />
-        <label htmlFor="password">Password:</label>
         <input
           type="password"
-          id="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
+          placeholder="Senha"
         />
         <button type="submit">Login</button>
       </form>
