@@ -1,0 +1,9 @@
+.dashboard{
+    padding: 30px;
+}
+
+.header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}

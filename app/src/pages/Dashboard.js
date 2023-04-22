@@ -1,18 +1,28 @@
+import Style from "../css/pages/dashboard.module.css";
+
 import { useEffect } from "react";
 import useAuth from "../hooks/useAuth";
-import SetTheme from "../components/SetTheme";
+
+import Hallo from "../components/Hallo";
+import Menu from "../components/Menu";
 
 const Dashboard = () => {
-  const {redirect, logout} = useAuth();
+  const { redirect, logout } = useAuth();
+  console.log("Carregando dashboard");
 
   useEffect(() => {
-    redirect("/dashboard")
-  });
+    console.log("Redirecionando");
+    redirect("/dashboard");
+  },[redirect,logout]);
 
-  return <div>Dashboard
-    <button onClick={logout}>Logout</button>
-    <SetTheme />
-  </div>;
+  return (
+    <div className={Style.dashboard}>
+      <header className={Style.header}>
+        <Hallo />
+        <Menu logout={logout} />
+      </header>
+    </div>
+  );
 };
 
 export default Dashboard;

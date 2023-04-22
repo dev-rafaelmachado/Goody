@@ -9,14 +9,13 @@
     const [currentUser, setCurrentUser] = useState(null);
     const [isAuthChecked, setIsAuthChecked] = useState(false);
 
-    useEffect(() => { 
+    useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
         setCurrentUser(user);
         setIsAuthChecked(true);
         });
         return unsubscribe;
     }, []);
-
     if (!isAuthChecked) {
         return <div>Verificando autenticação...</div>;
     }
