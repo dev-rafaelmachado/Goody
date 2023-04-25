@@ -5,6 +5,8 @@ import useAuth from "../hooks/useAuth";
 import Hallo from "../components/Hallo";
 import Menu from "../components/Menu";
 import TempInfo from "../components/TempInfo";
+import Door from "../components/Door.js";
+import Ipcam from "../components/IPCam";
 
 const Dashboard = () => {
   const { logout } = useAuth();
@@ -17,6 +19,8 @@ const Dashboard = () => {
       </header>
       <main className={Style.main}>
         <TempInfo />
+        <Door />
+        <Ipcam />
       </main>
     </div>
   );
