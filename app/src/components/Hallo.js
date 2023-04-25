@@ -5,6 +5,11 @@ import Style from "../css/components/hallo.module.css";
 
 const Hallo = () => {
   const { currentUser } = useContext(AuthContext);
+
+  if (currentUser === null) {
+    return;
+  }
+
   const dataAtual = new Date();
   const nomesMeses = [
     "Janeiro",
