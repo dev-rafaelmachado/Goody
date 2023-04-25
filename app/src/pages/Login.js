@@ -1,24 +1,25 @@
-import Style from "../css/pages/login.module.css"
+import Style from "../css/pages/login.module.css";
 
 import { useCallback, useEffect, useState } from "react";
-import useAuth from '../hooks/useAuth';
+import useAuth from "../hooks/useAuth";
+import SetTheme from "../components/SetTheme";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
+
   const { redirect, login } = useAuth();
 
   const handleLogin = (event) => {
     event.preventDefault();
-    login(email,password)
+    login(email, password);
   };
 
   const memoizedRedirect = useCallback(redirect, []);
 
   useEffect(() => {
     memoizedRedirect("/login");
-  },[memoizedRedirect]);
+  }, [memoizedRedirect]);
 
   return (
     <div className={Style.main}>
@@ -38,6 +39,9 @@ const Login = () => {
         />
         <button type="submit">Login</button>
       </form>
+      <span className={Style.theme}>
+        <SetTheme />
+      </span>
     </div>
   );
 };

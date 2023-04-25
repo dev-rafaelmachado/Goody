@@ -6,6 +6,7 @@
 
     display: grid;
     place-items: center;
+    transition: background 0.3s ease-in-out; 
 }
 
 .form{
@@ -81,4 +82,13 @@
 
 .form button:active{
     transform: scale(0.5);
+}
+
+.theme{
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+
+    color: var(--text);
+    font-size: 0px;
 }
