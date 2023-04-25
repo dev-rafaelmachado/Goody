@@ -1,0 +1,84 @@
+.box{
+    width: 30rem;
+    height: 18rem;
+    padding: 2rem;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--primary-color);
+    border-radius: 20px;
+}
+
+.temp_block{
+    width: 100%;
+    height: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.classification{
+    display: flex;
+}
+
+
+.classification h3{
+    font-family: 'Rubik';
+    font-weight: 400;
+    font-size: 2.2rem;
+
+    color: #fff;
+
+    display: grid;
+    place-items: center;
+}
+
+.temp_block h4{
+    font-family: 'Nunito';
+    font-weight: 600;
+    font-size: 3.2rem;
+
+    color: #fff;
+}
+
+.info_block{
+    width: 100%;
+    height: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 3.7rem;
+}
+
+.info{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.info h6{
+    width: max-content;
+    font-family: 'Nunito';
+    font-weight: 600;
+    font-size: 1.5rem;
+    letter-spacing: 0.04em;
+
+    color: #FFFFFF;
+}
+
+.info p{
+    font-family: 'Rubik';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.2rem;
+    letter-spacing: 0.04em;
+
+    color: #999999;
+}
