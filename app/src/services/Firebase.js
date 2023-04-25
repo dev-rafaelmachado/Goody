@@ -4,6 +4,7 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from "firebase/auth";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAmCnM4buBLharowrBIe5qVONH8_1_L2RQ",
@@ -17,5 +18,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const db = getDatabase();
 
 setPersistence(auth, browserLocalPersistence);
