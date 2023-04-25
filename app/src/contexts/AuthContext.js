@@ -3,6 +3,7 @@ import { auth } from "../services/Firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
 import { createContext } from "react";
+import Loader from "../components/Loader";
 const AuthContext = createContext();
 
 function AuthProvider({ children }) {
@@ -18,7 +19,7 @@ function AuthProvider({ children }) {
   }, []);
 
   if (isLoading) {
-    return <div>Verificando autenticação...</div>;
+    return <Loader />;
   }
 
   // Renderiza o contexto com o usuário atual e a função de redirecionamento
