@@ -1,12 +1,13 @@
 import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth } from "../services/Firebase";
 
 function useAuth() {
   const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
-  const auth = getAuth();
+
 
   const redirect = (actualPath) => {
     if (currentUser === null && actualPath !== "/login") {
@@ -14,26 +15,26 @@ function useAuth() {
     } else if (currentUser !== null && actualPath !== "/dashboard") {
       navigate("/dashboard");
     }
-    
-    
   };
 
-  const login = (email, password) => {
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        navigate("/dashboard");
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+  const login = async (email, password) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error(error);
+    }
   };
-
-  const logout = () => {
-    signOut(auth)
-      .catch((error) => {
-        console.error(error)
-      });
-  };  
+  
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
 
   return { redirect, login, logout };
 }

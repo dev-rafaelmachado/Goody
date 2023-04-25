@@ -1,6 +1,6 @@
 import Style from "../css/pages/login.module.css"
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import useAuth from '../hooks/useAuth';
 
 const Login = () => {
@@ -9,14 +9,16 @@ const Login = () => {
   
   const { redirect, login } = useAuth();
 
-  useEffect(() => {
-    redirect("/login")
-  });
-
   const handleLogin = (event) => {
     event.preventDefault();
     login(email,password)
   };
+
+  const memoizedRedirect = useCallback(redirect, []);
+
+  useEffect(() => {
+    memoizedRedirect("/login");
+  },[memoizedRedirect]);
 
   return (
     <div className={Style.main}>
