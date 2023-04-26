@@ -1,6 +1,6 @@
-import Style from "../css/components/tempinfo.module.css";
+import Style from "../../css/components/tempinfo.module.css";
 import { ThermometerSimple } from "@phosphor-icons/react";
-import useFirebaseValue from "../hooks/useFirebaseValue";
+import useFirebaseValue from "../../hooks/useFirebaseValue";
 import { useEffect, useState } from "react";
 
 const TempInfo = () => {

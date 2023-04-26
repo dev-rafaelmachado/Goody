@@ -1,0 +1,94 @@
+.box{
+    width: 14rem;
+    height: 14rem;
+    border-radius: 20px 30px;
+
+    padding: 1.2rem;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    
+    gap: 0.5rem;
+}
+
+.box:nth-child(2),
+.box:nth-child(3) {
+    border-radius: 30px 20px;
+}
+
+.box h4{
+    margin-top: 1rem;
+}
+
+/* > ON */
+.on{
+    background: var(--primary-color);
+}
+
+.on h2{
+    font-family: 'Rubik';
+    font-weight: 400;
+    font-size: 1.8rem;
+    color: #F7F0F5;
+}
+
+.on h4{
+    font-family: 'Rubik';
+    font-weight: 400;
+    font-size:1.6rem;
+    color: #939393;
+}
+
+.on span{
+    color: #14FF00;
+}
+
+.on svg{
+    fill: #f7f0f599;
+}
+
+/* > OFF */
+.off{
+    background: var(--secundary-color);
+}
+
+.off h2{
+    font-family: 'Rubik';
+    font-weight: 400;
+    font-size: 1.8rem;
+    color: #f7f0f58c;
+
+}
+
+.off h4{
+    font-family: 'Rubik';
+    font-weight: 400;
+    font-size:1.3rem;
+    color: #939393;
+}
+
+.off span{
+    color: #FF0000;
+}
+
+.off svg{
+    fill: #f7f0f533;
+}
+
+/* ! List Machines */
+
+.ListMachine{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.section h6{
+    margin-bottom: 1rem;
+    font-family: 'Rubik';
+    font-weight: 400;
+    font-size: 2rem;
+    color: var(--text)
+}

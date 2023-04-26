@@ -1,8 +1,8 @@
-import Style from "../css/components/menu.module.css";
+import Style from "../../css/components/menu.module.css";
 
 import { useState } from "react";
 import { List, SignOut } from "@phosphor-icons/react";
-import SetTheme from "../components/SetTheme";
+import SetTheme from "../SetTheme";
 
 const Menu = ({logout}) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

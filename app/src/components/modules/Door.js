@@ -1,8 +1,8 @@
-import Style from "../css/components/door.module.css";
+import Style from "../../css/components/door.module.css";
 import { Door as DoorIcon, DoorOpen } from "@phosphor-icons/react";
-import useFirebaseValue from "../hooks/useFirebaseValue";
+import useFirebaseValue from "../../hooks/useFirebaseValue";
 import { ref, set } from "firebase/database";
-import { db } from "../services/Firebase";
+import { db } from "../../services/Firebase";
 
 const Door = () => {
   const statusDoor = useFirebaseValue("/room/components/door/isopen");

@@ -2,11 +2,12 @@ import Style from "../css/pages/dashboard.module.css";
 
 import useAuth from "../hooks/useAuth";
 
-import Hallo from "../components/Hallo";
-import Menu from "../components/Menu";
-import TempInfo from "../components/TempInfo";
-import Door from "../components/Door.js";
-import Ipcam from "../components/IPCam";
+import Hallo from "../components/header/Hallo";
+import Menu from "../components/header/Menu";
+import Door from "../components/modules/Door";
+import TempInfo from "../components/modules/TempInfo";
+import Ipcam from "../components/modules/IPCam";
+import ListMachines from "../components/modules/ListMachines";
 
 const Dashboard = () => {
   const { logout } = useAuth();
@@ -18,9 +19,14 @@ const Dashboard = () => {
         <Menu logout={logout} />
       </header>
       <main className={Style.main}>
+      <div className={Style.divisor_1}>
         <TempInfo />
         <Door />
         <Ipcam />
+      </div>
+        <div className={Style.divisor_2}>
+          <ListMachines />
+        </div>
       </main>
     </div>
   );
