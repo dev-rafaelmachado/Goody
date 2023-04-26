@@ -1,4 +1,4 @@
-import Style from "../css/components/ipcam.module.css";
+import Style from "../../css/components/ipcam.module.css";
 import { Webcam } from "@phosphor-icons/react";
 
 const Ipcam = () => {

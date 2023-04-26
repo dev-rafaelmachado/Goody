@@ -1,7 +1,7 @@
 import { useContext } from "react";
-import { AuthContext } from "../contexts/AuthContext";
+import { AuthContext } from "../../contexts/AuthContext";
 
-import Style from "../css/components/hallo.module.css";
+import Style from "../../css/components/hallo.module.css";
 
 const Hallo = () => {
   const { currentUser } = useContext(AuthContext);
