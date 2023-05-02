@@ -10,7 +10,7 @@ const Menu = ({logout}) => {
   return (
     <div className={Style.dropdown_menu}>
       <List
-        size={36}
+        size={"3rem"}
         className={Style.menu}
         onClick={() => {
           setIsMenuOpen(!isMenuOpen);
