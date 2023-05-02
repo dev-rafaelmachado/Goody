@@ -15,7 +15,7 @@ const Login = () => {
     login(email, password);
   };
 
-  const memoizedRedirect = useCallback(redirect, []);
+  const memoizedRedirect = useCallback(redirect, [redirect]);
 
   useEffect(() => {
     memoizedRedirect("/login");
