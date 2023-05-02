@@ -1,11 +1,15 @@
-import './App.css';
+import { useEffect } from "react";
+import useAuth from "./hooks/useAuth";
 
 function App() {
-  return (
-    <div className="App">
-      <h1>Goody</h1>
-    </div>
-  );
+  const {redirect} = useAuth();
+
+  useEffect(() => {
+    redirect("/app");
+  })
+  
+
+  return null
 }
 
 export default App;

@@ -1,3 +1,17 @@
+:root {
+  --primary-color: #2C2C2C;
+  --secundary-color: #5A5A5A;
+  --background-color: #ebe5e0;
+  --text: #000000;
+}
+
+[data-theme="dark"] {
+  --primary-color: #3A3A4D;
+  --secundary-color: #272734;
+  --background-color: #2D2D3D;
+  --text: #fff;
+}
+
 * {
   margin: 0px;
   padding: 0px;
@@ -7,4 +21,19 @@
 html, body, #root{
   width: 100vw;
   height: 100vh;
+}
+
+body{
+  background: var(--background-color);
+  transition: background 0.3s ease-in-out;  
+}
+
+@media screen and (max-width: 600px) {
+  html {
+      font-size: 11px;
+  }
+  html, body, #root{
+    width: 100vw;
+    height: auto
+  }
 }
