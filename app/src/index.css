@@ -18,7 +18,12 @@
   box-sizing: border-box;
 }
 
-html, body, #root{
+html, body{
+  width: 100vw;
+  height: 100vh;
+}
+
+#root{
   width: 100vw;
   height: 100vh;
 }
@@ -32,8 +37,8 @@ body{
   html {
       font-size: 11px;
   }
-  html, body, #root{
+  html, body,#root{
     width: 100vw;
-    height: auto
+    height: fit-content;
   }
 }
