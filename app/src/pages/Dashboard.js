@@ -8,6 +8,7 @@ import Door from "../components/modules/Door";
 import TempInfo from "../components/modules/TempInfo";
 import Ipcam from "../components/modules/IPCam";
 import ListMachines from "../components/modules/ListMachines";
+import Notification from "../components/header/Notification";
 
 const Dashboard = () => {
   const { logout } = useAuth();
@@ -16,14 +17,17 @@ const Dashboard = () => {
     <div className={Style.dashboard}>
       <header className={Style.header}>
         <Hallo />
-        <Menu logout={logout} />
+        <div className={Style.icons}>
+          <Notification />
+          <Menu logout={logout} />
+        </div>
       </header>
       <main className={Style.main}>
-      <div className={Style.divisor_1}>
-        <TempInfo />
-        <Door />
-        <Ipcam />
-      </div>
+        <div className={Style.divisor_1}>
+          <TempInfo />
+          <Door />
+          <Ipcam />
+        </div>
         <div className={Style.divisor_2}>
           <ListMachines />
         </div>
