@@ -5,14 +5,13 @@ import { useEffect, useState } from "react";
 
 const TempInfo = () => {
   // ~ Valores do firebase
-  const vTemperature = useFirebaseValue("/room/components/bme280/temp/value");
-  const vUmidade = useFirebaseValue("/room/components/bme280/humd/value")
-  const vPress = useFirebaseValue("/room/components/bme280/press/value")
-  const vSmoke = useFirebaseValue("/room/components/mq-2/value")
+  const vTemperature = useFirebaseValue("/room/components/dht11/temp/value");
+  const vUmidade = useFirebaseValue("/room/components/dht11/humd/value");
+  const vSmoke = useFirebaseValue("/room/components/mq-2/value");
 
   // ~ Outros States
   const [color, setColor] = useState("#fff");
-  const [classification, setClassification] = useState("-----")
+  const [classification, setClassification] = useState("-----");
 
   useEffect(() => {
     if (vTemperature != null) {
@@ -31,7 +30,7 @@ const TempInfo = () => {
       }
     }
   }, [vTemperature]);
-  
+
   return (
     <div className={Style.box}>
       <div className={Style.temp_block}>
@@ -45,10 +44,6 @@ const TempInfo = () => {
         <div className={Style.info}>
           <h6>{vUmidade != null ? vUmidade.toFixed(0) : "--"}%</h6>
           <p>Umidade</p>
-        </div>
-        <div className={Style.info}>
-          <h6>{vPress != null ? vPress : "---"} hPa</h6>
-          <p>Pressão</p>
         </div>
         <div className={Style.info}>
           <h6>{vSmoke != null ? vSmoke.toFixed(0) : "--"}%</h6>
