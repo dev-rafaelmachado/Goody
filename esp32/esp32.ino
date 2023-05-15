@@ -18,14 +18,14 @@
 #define USER_PASSWORD "332211"
 // # Pinos
 // Sensores
-#define pPIR 15  // ^ Pino PIR
-#define pDHT 18  // ^ Pino DHT11
-#define pMQ2 32  // ^ Pino MQ-2
-#define pSM15 5  // ^ Pino SM-15
+#define pPIR 15 // ^ Pino PIR
+#define pDHT 18 // ^ Pino DHT11
+#define pMQ2 32 // ^ Pino MQ-2
+#define pSM15 5 // ^ Pino SM-15
 // ### reles
-#define pRelePorta 13     // ^ Pino Rele (Porta)
-#define pReleLuz 12       // ^ Pino Rele (Luz)
-#define pReleExaustor 14  // ^ Pino Rele (Exaustor)
+#define pRelePorta 13    // ^ Pino Rele (Porta)
+#define pReleLuz 12      // ^ Pino Rele (Luz)
+#define pReleExaustor 14 // ^ Pino Rele (Exaustor)
 // ### Outros
 #define intervaloDHT 20000
 #define intervaloSM15 1000
@@ -33,14 +33,14 @@
 #define vAlertMQ2 400
 
 // > Vars
-bool sPIR;       // ^ Status PIR
-bool sSM15;      // ^ Status SM15
-bool AlertFlag;  // ^ Uma flag de alerta (MQ2)
+bool sPIR;      // ^ Status PIR
+bool sSM15;     // ^ Status SM15
+bool AlertFlag; // ^ Uma flag de alerta (MQ2)
 
-int vMQ2;  // ^ Valor MQ2
+int vMQ2; // ^ Valor MQ2
 
-float vTemp;  // ^ Valor Temperatura
-float vUmid;  // ^ Valor Umidade
+float vTemp; // ^ Valor Temperatura
+float vUmid; // ^ Valor Umidade
 
 unsigned long previousMillis_dht11;
 unsigned long previousMillis_sm15;
@@ -56,11 +56,13 @@ FirebaseJson json;
 // > Funções
 // # Configs
 // ~ Wifi Config
-void wifiBegin() {
+void wifiBegin()
+{
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   Serial.print("Conectando à rede Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
     Serial.print(".");
   }
@@ -70,7 +72,8 @@ void wifiBegin() {
 }
 
 // ~ Firebase Config
-void firebaseBegin() {
+void firebaseBegin()
+{
   Serial.printf("Firebase Client v%s\n\n", FIREBASE_CLIENT_VERSION);
   // .config
   config.api_key = API_KEY;
@@ -85,7 +88,8 @@ void firebaseBegin() {
 
   // # Pegando o USER ID
   Serial.println("Getting User UID");
-  while ((auth.token.uid) == "") {
+  while ((auth.token.uid) == "")
+  {
     Serial.print('.');
     delay(1000);
   }
@@ -98,13 +102,18 @@ void firebaseBegin() {
 
 // # Others
 // ~ Salva um valor float no Firebase
-void setFloatValue(String path, float value) {
-  if (Firebase.setFloat(fbdo, path + "/value", value)) {
+void setFloatValue(String path, float value)
+{
+  if (Firebase.setFloat(fbdo, path + "/value", value))
+  {
     Serial.println(path + " [V]");
-  } else {
+  }
+  else
+  {
     Serial.print(path + " [X]");
     Serial.println(fbdo.errorReason());
-    if (Firebase.isTokenExpired()) {
+    if (Firebase.isTokenExpired())
+    {
       Firebase.refreshToken(&config);
       Serial.println("Refresh token");
     }
@@ -112,13 +121,18 @@ void setFloatValue(String path, float value) {
 }
 
 // ~ Salva um valor bool no Firebase
-void setBoolValue(String path, bool value) {
-  if (Firebase.setBool(fbdo, path, value)) {
+void setBoolValue(String path, bool value)
+{
+  if (Firebase.setBool(fbdo, path, value))
+  {
     Serial.println(path + " [V]");
-  } else {
+  }
+  else
+  {
     Serial.print(path + " [X]");
     Serial.println(fbdo.errorReason());
-    if (Firebase.isTokenExpired()) {
+    if (Firebase.isTokenExpired())
+    {
       Firebase.refreshToken(&config);
       Serial.println("Refresh token");
     }
@@ -126,15 +140,21 @@ void setBoolValue(String path, bool value) {
 }
 
 // ~ Abre uma notificação
-void openNotification(String type) {
+void openNotification(String type)
+{
+  // * Cria um json com todas as informações da notificação
   json.clear();
   json.set("type", type);
   json.set("isviewed", false);
   json.set("closed", false);
   json.set("time", "00-00-00");
-  if (Firebase.pushJSON(fbdo, "/room/notifications/", json)) {
+  // * Insere no Firebase
+  if (Firebase.pushJSON(fbdo, "/room/notifications/", json))
+  {
     Serial.println("Notificação gravada [v]");
-  } else {
+  }
+  else
+  {
     Serial.print("Notificação - Erro ao gravar [x] | ");
     Serial.println(fbdo.errorReason());
   }
@@ -143,27 +163,34 @@ void openNotification(String type) {
 // ------------------ //
 
 // ~ Callback para quando a chave handdleOpen é alterada
-void handleBooleanChange(StreamData data) {
+void handleBooleanChange(StreamData data)
+{
   bool value = data.to<bool>();
   Serial.print("\n|>>>> handdleOpen:");
   Serial.println(value + "\n");
 
-  if (value) {
+  if (value)
+  {
+    digitalWrite(pReleExaustor, 1);
+    delay(2000);
+    digitalWrite(pReleExaustor, 0);
     setBoolValue("/room/components/door/handleopen", false);
   }
 }
 
 // ~ Quando a conexão http (webSocket) cai
-void streamTimeoutCallback(bool timeout) {
-  if (timeout) {
+void streamTimeoutCallback(bool timeout)
+{
+  if (timeout)
+  {
     Serial.println("Stream timeout, resume streaming...");
   }
   delay(1000);
 }
 
-
 // > Setup
-void setup() {
+void setup()
+{
   // # PinMode
   pinMode(pPIR, INPUT);
   pinMode(pSM15, INPUT);
@@ -177,56 +204,64 @@ void setup() {
   wifiBegin();
   firebaseBegin();
 
-
   // * Definindo Listener
-  if (!Firebase.beginStream(fbdo_extra, "/room/components/door/handleopen")) {
+  if (!Firebase.beginStream(fbdo_extra, "/room/components/door/handleopen"))
+  {
     Serial.println(fbdo.errorReason());
   }
   // * Definindo uma função de callback para quando uma chave for alterada
   Firebase.setStreamCallback(fbdo_extra, handleBooleanChange, streamTimeoutCallback);
 
-  delay(1000);  // ! Estabilizar antes de começar
+  delay(1000); // ! Estabilizar antes de começar
 }
 
 // > Loop
-void loop() {
+void loop()
+{
   unsigned long currentMillis = millis();
 
   // ? Lê o sensor PIR | Caso o valor seja HIGH (movimento) define o rele da luz como HIGH caso não possua movimento define o rele da luz como LOW
   sPIR = digitalRead(pPIR);
   digitalWrite(pReleLuz, sPIR);
 
-  // * lê o MQ2 e exibe seu valor no Serial
+  // * lê o MQ-2 e exibe seu valor no Serial
   vMQ2 = analogRead(pMQ2);
   Serial.println("MQ2 - Valor: " + String(vMQ2));
-    // ? Caso o valor medido for maior que o valor de alerta: Ative o alerta e ligue o exaustor
-    if (vMQ2 >= vAlertMQ2) {
+  // ? Caso o valor medido for maior que o valor de alerta: Ative o alerta e ligue o exaustor
+  if (vMQ2 >= vAlertMQ2 && !AlertFlag)
+  {
     Serial.println("ALERTA!!!! Sensor MQ2 Detectou um pico na leitura");
     AlertFlag = true;
     digitalWrite(pReleExaustor, 1);
     openNotification("fire");
   }
   // ? Caso o valor medido não for maior que o valor de alerta: Verifique se existe um Alerta aberto: Feche o alerta
-  else if (AlertFlag) {
+  else if (AlertFlag)
+  {
     AlertFlag = false;
     Serial.println("Alerta Sensor MQ2 - Fechado");
     digitalWrite(pReleExaustor, 0);
   }
 
-  // ? Lê o sensor DHT11 e Exibe as temperaturas e as grâva no Firebase
-  if ((unsigned long)(currentMillis - previousMillis_dht11) >= intervaloDHT) {
+  // ? Verifica se esta na hora de ler o DHT11
+  if ((unsigned long)(currentMillis - previousMillis_dht11) >= intervaloDHT)
+  {
+    // * Lê o sensor DHT11 e Exibe as temperaturas e as grâva no Firebase
     vUmid = dht.readHumidity();
     vTemp = dht.readTemperature();
     Serial.println("Temperatura: " + String(vTemp) + " || Umidade: " + String(vUmid));
-    if (Firebase.ready()) {
-      setFloatValue("/room/components/dht11/temp", vTemp);  // * Grava Temperatura no Banco
-      setFloatValue("/room/components/dht11/humd", vUmid);  // * Grava Umidade no Banco
+    if (Firebase.ready())
+    {
+      setFloatValue("/room/components/dht11/temp", vTemp); // * Grava Temperatura no Banco
+      setFloatValue("/room/components/dht11/humd", vUmid); // * Grava Umidade no Banco
     }
     previousMillis_dht11 = currentMillis;
   }
 
-  if ((unsigned long)(currentMillis - previousMillis_sm15) >= intervaloSM15) {
-    if (digitalRead(pSM15) != sSM15) {
+  if ((unsigned long)(currentMillis - previousMillis_sm15) >= intervaloSM15)
+  {
+    if (digitalRead(pSM15) != sSM15)
+    {
       sSM15 = digitalRead(pSM15);
       Serial.println("Porta: " + String(!sSM15));
       setBoolValue("/room/components/door/isopen", !sSM15);
@@ -234,5 +269,5 @@ void loop() {
     previousMillis_sm15 = currentMillis;
   }
 
-  delay(500);  // ! Desafogar
+  delay(500); // ! Desafogar
 }
