@@ -18,24 +18,32 @@
 #define USER_PASSWORD "332211"
 // # Pinos
 // Sensores
-#define pPIR 15   // ^ Pino PIR
-#define pDHT 18   // ^ Pino DHT11
-#define pMQ2 19   // ^ Pino MQ-2
-#define pSM15 05  // ^ Pino SM-15
+#define pPIR 15  // ^ Pino PIR
+#define pDHT 18  // ^ Pino DHT11
+#define pMQ2 32  // ^ Pino MQ-2
+#define pSM15 5  // ^ Pino SM-15
 // ### reles
 #define pRelePorta 13     // ^ Pino Rele (Porta)
 #define pReleLuz 12       // ^ Pino Rele (Luz)
 #define pReleExaustor 14  // ^ Pino Rele (Exaustor)
 // ### Outros
 #define intervaloDHT 20000
+#define intervaloSM15 1000
+
+#define vAlertMQ2 400
 
 // > Vars
-bool sPIR;  // ^ Status PIR
+bool sPIR;       // ^ Status PIR
+bool sSM15;      // ^ Status SM15
+bool AlertFlag;  // ^ Uma flag de alerta (MQ2)
+
+int vMQ2;  // ^ Valor MQ2
 
 float vTemp;  // ^ Valor Temperatura
 float vUmid;  // ^ Valor Umidade
 
 unsigned long previousMillis_dht11;
+unsigned long previousMillis_sm15;
 
 // > Objetos
 DHT dht(pDHT, DHT11);
@@ -43,6 +51,7 @@ FirebaseData fbdo;
 FirebaseData fbdo_extra;
 FirebaseAuth auth;
 FirebaseConfig config;
+FirebaseJson json;
 
 // > Funções
 // # Configs
@@ -102,25 +111,45 @@ void setFloatValue(String path, float value) {
   }
 }
 
+// ~ Salva um valor bool no Firebase
+void setBoolValue(String path, bool value) {
+  if (Firebase.setBool(fbdo, path, value)) {
+    Serial.println(path + " [V]");
+  } else {
+    Serial.print(path + " [X]");
+    Serial.println(fbdo.errorReason());
+    if (Firebase.isTokenExpired()) {
+      Firebase.refreshToken(&config);
+      Serial.println("Refresh token");
+    }
+  }
+}
+
+// ~ Abre uma notificação
+void openNotification(String type) {
+  json.clear();
+  json.set("type", type);
+  json.set("isviewed", false);
+  json.set("closed", false);
+  json.set("time", "00-00-00");
+  if (Firebase.pushJSON(fbdo, "/room/notifications/", json)) {
+    Serial.println("Notificação gravada [v]");
+  } else {
+    Serial.print("Notificação - Erro ao gravar [x] | ");
+    Serial.println(fbdo.errorReason());
+  }
+}
+
+// ------------------ //
+
 // ~ Callback para quando a chave handdleOpen é alterada
 void handleBooleanChange(StreamData data) {
   bool value = data.to<bool>();
   Serial.print("\n|>>>> handdleOpen:");
-  Serial.println(value);
-
-  // delay(2000);
+  Serial.println(value + "\n");
 
   if (value) {
-    if (Firebase.setBool(fbdo, "/room/components/door/handleopen", false)) {
-      Serial.println("/room/components/door/handleopen [V]");
-    } else {
-      Serial.print("/room/components/door/handleopen [X]");
-      Serial.println(fbdo.errorReason());
-      if (Firebase.isTokenExpired()) {
-        Firebase.refreshToken(&config);
-        Serial.println("Refresh token");
-      }
-    }
+    setBoolValue("/room/components/door/handleopen", false);
   }
 }
 
@@ -137,7 +166,10 @@ void streamTimeoutCallback(bool timeout) {
 void setup() {
   // # PinMode
   pinMode(pPIR, INPUT);
+  pinMode(pSM15, INPUT);
   pinMode(pReleLuz, OUTPUT);
+  pinMode(pRelePorta, OUTPUT);
+  pinMode(pReleExaustor, OUTPUT);
 
   // Begins
   Serial.begin(9600);
@@ -146,13 +178,13 @@ void setup() {
   firebaseBegin();
 
 
-  // * Definindo Listener 
+  // * Definindo Listener
   if (!Firebase.beginStream(fbdo_extra, "/room/components/door/handleopen")) {
     Serial.println(fbdo.errorReason());
   }
   // * Definindo uma função de callback para quando uma chave for alterada
   Firebase.setStreamCallback(fbdo_extra, handleBooleanChange, streamTimeoutCallback);
-      
+
   delay(1000);  // ! Estabilizar antes de começar
 }
 
@@ -164,8 +196,25 @@ void loop() {
   sPIR = digitalRead(pPIR);
   digitalWrite(pReleLuz, sPIR);
 
+  // * lê o MQ2 e exibe seu valor no Serial
+  vMQ2 = analogRead(pMQ2);
+  Serial.println("MQ2 - Valor: " + String(vMQ2));
+    // ? Caso o valor medido for maior que o valor de alerta: Ative o alerta e ligue o exaustor
+    if (vMQ2 >= vAlertMQ2) {
+    Serial.println("ALERTA!!!! Sensor MQ2 Detectou um pico na leitura");
+    AlertFlag = true;
+    digitalWrite(pReleExaustor, 1);
+    openNotification("fire");
+  }
+  // ? Caso o valor medido não for maior que o valor de alerta: Verifique se existe um Alerta aberto: Feche o alerta
+  else if (AlertFlag) {
+    AlertFlag = false;
+    Serial.println("Alerta Sensor MQ2 - Fechado");
+    digitalWrite(pReleExaustor, 0);
+  }
+
+  // ? Lê o sensor DHT11 e Exibe as temperaturas e as grâva no Firebase
   if ((unsigned long)(currentMillis - previousMillis_dht11) >= intervaloDHT) {
-    // ? Lê o sensor DHT11 e Exibe as temperaturas e as grâva no Firebase
     vUmid = dht.readHumidity();
     vTemp = dht.readTemperature();
     Serial.println("Temperatura: " + String(vTemp) + " || Umidade: " + String(vUmid));
@@ -175,5 +224,15 @@ void loop() {
     }
     previousMillis_dht11 = currentMillis;
   }
+
+  if ((unsigned long)(currentMillis - previousMillis_sm15) >= intervaloSM15) {
+    if (digitalRead(pSM15) != sSM15) {
+      sSM15 = digitalRead(pSM15);
+      Serial.println("Porta: " + String(!sSM15));
+      setBoolValue("/room/components/door/isopen", !sSM15);
+    }
+    previousMillis_sm15 = currentMillis;
+  }
+
   delay(500);  // ! Desafogar
 }
