@@ -1,11 +1,20 @@
 // Goody :: DEVELOP Version :: V_0.1
 
 // > Bibliotecas
+// Base
 #include <WiFi.h>
+// ## Firebase
 #include <FirebaseESP32.h>
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
+// Time
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+#include <TimeLib.h>
+// Sensors
 #include "DHT.h"
+
+
 
 // > Defines
 // # WIFI
@@ -30,7 +39,10 @@
 #define intervaloDHT 20000
 #define intervaloSM15 1000
 
-#define vAlertMQ2 400
+#define vAlertMQ2 800
+#define intervaloAlert 120000
+
+#define umPorCento 44
 
 // > Vars
 bool sPIR;       // ^ Status PIR
@@ -44,6 +56,7 @@ float vUmid;  // ^ Valor Umidade
 
 unsigned long previousMillis_dht11;
 unsigned long previousMillis_sm15;
+unsigned long previousMillis_alertMQ2;
 
 // > Objetos
 DHT dht(pDHT, DHT11);
@@ -52,6 +65,9 @@ FirebaseData fbdo_extra;
 FirebaseAuth auth;
 FirebaseConfig config;
 FirebaseJson json;
+
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org");
 
 // > Funções
 // # Configs
@@ -96,11 +112,19 @@ void firebaseBegin() {
   Serial.println("Conectado ao Firebase com sucesso!");
 }
 
+// ~ DateTime config
+void beginDateTime() {
+  timeClient.begin();
+  timeClient.setTimeOffset(-10800);
+  timeClient.update();
+}
+
 // # Others
 // ~ Salva um valor float no Firebase
 void setFloatValue(String path, float value) {
   if (Firebase.setFloat(fbdo, path + "/value", value)) {
     Serial.println(path + " [V]");
+    Firebase.setString(fbdo, path + "/time", getFormatDateTime());
   } else {
     Serial.print(path + " [X]");
     Serial.println(fbdo.errorReason());
@@ -115,6 +139,7 @@ void setFloatValue(String path, float value) {
 void setBoolValue(String path, bool value) {
   if (Firebase.setBool(fbdo, path, value)) {
     Serial.println(path + " [V]");
+
   } else {
     Serial.print(path + " [X]");
     Serial.println(fbdo.errorReason());
@@ -130,14 +155,29 @@ void openNotification(String type) {
   json.clear();
   json.set("type", type);
   json.set("isviewed", false);
-  json.set("closed", false);
-  json.set("time", "00-00-00");
+  json.set("time", getFormatDateTime());
   if (Firebase.pushJSON(fbdo, "/room/notifications/", json)) {
     Serial.println("Notificação gravada [v]");
   } else {
     Serial.print("Notificação - Erro ao gravar [x] | ");
     Serial.println(fbdo.errorReason());
   }
+}
+
+// ~ Retorna data formatada
+String getFormatDateTime() {
+  timeClient.update();
+  time_t currentTime = timeClient.getEpochTime();
+  struct tm* timeinfo;
+  timeinfo = localtime(&currentTime);
+
+  int currentYear = timeinfo->tm_year + 1900;
+  int currentMonth = timeinfo->tm_mon + 1;
+  int currentDay = timeinfo->tm_mday;
+  int currentHour = timeinfo->tm_hour;
+  int currentMinute = timeinfo->tm_min;
+  int currentSecond = timeinfo->tm_sec;
+  return (String(currentHour) + ":" + String(currentMinute) + ":" + String(currentSecond) + " (" + String(currentDay) + "/" + String(currentMonth) + ")");
 }
 
 // ------------------ //
@@ -149,6 +189,9 @@ void handleBooleanChange(StreamData data) {
   Serial.println(value + "\n");
 
   if (value) {
+    digitalWrite(pRelePorta, HIGH);
+    delay(2000);
+    digitalWrite(pRelePorta, LOW);
     setBoolValue("/room/components/door/handleopen", false);
   }
 }
@@ -176,6 +219,7 @@ void setup() {
   dht.begin();
   wifiBegin();
   firebaseBegin();
+  beginDateTime();
 
 
   // * Definindo Listener
@@ -191,32 +235,36 @@ void setup() {
 // > Loop
 void loop() {
   unsigned long currentMillis = millis();
-
   // ? Lê o sensor PIR | Caso o valor seja HIGH (movimento) define o rele da luz como HIGH caso não possua movimento define o rele da luz como LOW
   sPIR = digitalRead(pPIR);
   digitalWrite(pReleLuz, sPIR);
 
-  // * lê o MQ2 e exibe seu valor no Serial
-  vMQ2 = analogRead(pMQ2);
-  Serial.println("MQ2 - Valor: " + String(vMQ2));
+  // * lê o MQ2 e exibe seu valor no Serial somente caso a diferença for maior que 1% da leitura passada
+  if (abs(analogRead(pMQ2) - vMQ2) >= umPorCento) {
+    vMQ2 = analogRead(pMQ2);
+    Serial.println("MQ2 - Valor: " + String(vMQ2));
+    setFloatValue("/room/components/mq-2", float(vMQ2));
     // ? Caso o valor medido for maior que o valor de alerta: Ative o alerta e ligue o exaustor
-    if (vMQ2 >= vAlertMQ2) {
-    Serial.println("ALERTA!!!! Sensor MQ2 Detectou um pico na leitura");
-    AlertFlag = true;
-    digitalWrite(pReleExaustor, 1);
-    openNotification("fire");
-  }
-  // ? Caso o valor medido não for maior que o valor de alerta: Verifique se existe um Alerta aberto: Feche o alerta
-  else if (AlertFlag) {
-    AlertFlag = false;
-    Serial.println("Alerta Sensor MQ2 - Fechado");
-    digitalWrite(pReleExaustor, 0);
+    if (vMQ2 >= vAlertMQ2 && !AlertFlag && (unsigned long)(currentMillis - previousMillis_alertMQ2) >= intervaloAlert) {
+      Serial.println("ALERTA!!!! Sensor MQ2 Detectou um pico na leitura");
+      AlertFlag = true;
+      digitalWrite(pReleExaustor, 1);
+      openNotification("fire");
+    }
+    // ? Caso o valor medido não for maior que o valor de alerta: Verifique se existe um Alerta aberto: Feche o alerta
+    else if (vMQ2 <= vAlertMQ2 && AlertFlag) {
+      AlertFlag = false;
+      Serial.println("Alerta Sensor MQ2 - Fechado");
+      digitalWrite(pReleExaustor, 0);
+      currentMillis = previousMillis_alertMQ2;
+    }
   }
 
-  // ? Lê o sensor DHT11 e Exibe as temperaturas e as grâva no Firebase
+
   if ((unsigned long)(currentMillis - previousMillis_dht11) >= intervaloDHT) {
     vUmid = dht.readHumidity();
     vTemp = dht.readTemperature();
+    // ? Lê o sensor DHT11 e Exibe as temperaturas e as grâva no Firebase
     Serial.println("Temperatura: " + String(vTemp) + " || Umidade: " + String(vUmid));
     if (Firebase.ready()) {
       setFloatValue("/room/components/dht11/temp", vTemp);  // * Grava Temperatura no Banco
@@ -225,6 +273,7 @@ void loop() {
     previousMillis_dht11 = currentMillis;
   }
 
+  // ?
   if ((unsigned long)(currentMillis - previousMillis_sm15) >= intervaloSM15) {
     if (digitalRead(pSM15) != sSM15) {
       sSM15 = digitalRead(pSM15);

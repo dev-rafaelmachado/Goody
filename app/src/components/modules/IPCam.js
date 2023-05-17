@@ -3,9 +3,8 @@ import { Webcam } from "@phosphor-icons/react";
 
 const Ipcam = () => {
   const openApp = () => {
-    const intentURI =
-      "intent://#Intent;scheme=br.com.intelbras.mibocam;package=br.com.intelbras.mibocam;end;";
-    window.location.href = intentURI;
+    window.location.href =
+      "https://play.google.com/store/apps/details?id=br.com.intelbras.mibocam&hl=en_US";
   };
 
   return (
