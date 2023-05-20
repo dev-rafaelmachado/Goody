@@ -46,8 +46,8 @@ const TempInfo = () => {
           <p>Umidade</p>
         </div>
         <div className={Style.info}>
-          <h6>{vSmoke != null ? ((vSmoke / 4096)*100).toFixed(0) : "--"}%</h6>
-          <p>Fumaça</p>
+          <h6>{vSmoke != null ? ((vSmoke / 4096) * 100).toFixed(0) : "--"}%</h6>
+          <p>Fumaça/Gás</p>
         </div>
       </div>
     </div>
