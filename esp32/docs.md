@@ -29,13 +29,11 @@ Plataforma: ESP32
 ## Header
 ### Defines Pinos
 #### Pinos
-* pPIR - Pino do sensor PIR -> 15
 * pDHT - Pino sensor DHT11 -> 18
 * pMQ2 - Pino sensor MQ-2 -> 35
 * pSM15 - Pino sensor SM15 -> 33
 * pACS712 - Pino sensor ACS712 -> 34
 * pRelePorta - Pino Rele (Porta) -> 13
-* pReleLuz - Pino Rele (Luz) -> 12
 * pReleExaustor - Pino Rele (Exaustor) -> 14
 #### Outros
 * WIFI_SSID - Nome do WIFI para se conectar
@@ -55,9 +53,9 @@ Plataforma: ESP32
 --
 
 ### Variables
-* sPIR - (bool) Status do sensor PIR | controle do estado do sensor
 * sSM15 - (bool) Status do sensor SM15 | controle do estado da maquina
-* AlertFlag - (bool) Flag pata saber se existe um alerta aberto do MQ-2
+* AlertFlag_MQ2 - (bool) Flag para saber se existe um alerta aberto do MQ-2
+* AlertFlag_DHT - (bool) Flag para saber se existe um alerta aberto no DHT (Tempertura)
 * vMQ2 - (int) Valor obtido atravês da leitura do MQ-2
 * vMvACS712Q2 - (int) Valor obtido atravês da leitura do ACS712
 * sTemp - (float) Valor obtido atravês da leitura do DHT11 
@@ -86,11 +84,9 @@ Plataforma: ESP32
 
 ## Setup
 ### PinMode
-* pPIR -> INPUT
 * pSM15 -> INPUT
 * pMQ2 -> INPUT
 * pACS712 -> INPUT
-* pReleLuz -> OUTPUT
 * pRelePorta -> OUTPUT
 * pReleExaustor -> OUTPUT
 ### Configurações
@@ -122,7 +118,7 @@ Define "ouvidos" para chaves do firebase, quando ocorre uma mudança nesta chave
 
 --
 
-2) Lê o Sensor PIR para se caso o seu valor seja HIGH (Dectectou movimento), ele ira ligar o rele da lampada, caso o seu valor seja LOW ele ira desligar o rele da lampada.
+2) Caso exista algum alerta aberto o exaustor deve ser ligado, do contrário desligue
 
 --
 
