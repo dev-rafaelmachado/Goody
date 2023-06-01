@@ -14,8 +14,6 @@
 // Sensors
 #include "DHT.h"
 
-
-
 // > Defines
 // # WIFI
 #define WIFI_SSID "ALHN-4DAA"
@@ -27,14 +25,12 @@
 #define USER_PASSWORD "332211"
 // # Pinos
 // Sensores
-#define pPIR 15     // ^ Pino PIR
 #define pDHT 18     // ^ Pino DHT11
 #define pMQ2 35     // ^ Pino MQ-2
 #define pSM15 33    // ^ Pino SM-15
-#define pACS712 34  // Pino ACS712
+#define pACS712 34  // ^ Pino ACS712
 // ### reles
 #define pRelePorta 13     // ^ Pino Rele (Porta)
-#define pReleLuz 12       // ^ Pino Rele (Luz)
 #define pReleExaustor 14  // ^ Pino Rele (Exaustor)
 // ### Outros
 #define intervaloDHT 20000
@@ -42,24 +38,25 @@
 #define intervaloACS712 1000
 
 #define intervaloAlert 120000
-#define vAlertMQ2 800
+#define vAlertMQ2 1024  // 25%
+#define vAlertTemp 28   // 28ºC
 
 #define umPorCento 46
 #define vAmpON 5
 
 // > Vars
-bool sPIR;       // ^ Status PIR
-bool sSM15;      // ^ Status SM15
-bool sACS712;    // ^ Status ACS712
-bool AlertFlag;  // ^ Uma flag de alerta (MQ2)
+bool sSM15;          // ^ Status SM15
+bool sACS712;        // ^ Status ACS712
+bool AlertFlag_MQ2;  // ^ Uma flag de alerta (MQ2)
+bool AlertFlag_DHT;  // ^ Uma flag de alerta (MQ2)
 
-int vMQ2;  // ^ Valor MQ2
-int vACS712;
+int vMQ2;     // ^ Valor MQ2
+int vACS712;  // ^ Valor ACS712
 
-float vTemp;  // ^ Valor Temperatura
-float vUmid;  // ^ Valor Umidade
-float Voltage;
-float Current;
+float vTemp;    // ^ Valor Temperatura
+float vUmid;    // ^ Valor Umidade
+float Voltage;  // ^ Voltagem
+float Current;  // ^ Amperagem
 
 unsigned long previousMillis_dht11;
 unsigned long previousMillis_sm15;
@@ -147,7 +144,6 @@ void setFloatValue(String path, float value) {
 void setBoolValue(String path, bool value) {
   if (Firebase.setBool(fbdo, path, value)) {
     Serial.println(path + " [V]");
-
   } else {
     Serial.print(path + " [X]");
     Serial.println(fbdo.errorReason());
@@ -177,7 +173,7 @@ void openNotification(String type) {
 String getFormatDateTime() {
   timeClient.update();
   time_t currentTime = timeClient.getEpochTime();
-  struct tm* timeinfo;
+  struct tm *timeinfo;
   timeinfo = localtime(&currentTime);
 
   int currentYear = timeinfo->tm_year + 1900;
@@ -216,24 +212,19 @@ void streamTimeoutCallback(bool timeout) {
 // > Setup
 void setup() {
   // # PinMode
-  pinMode(pPIR, INPUT);
   pinMode(pSM15, INPUT);
   pinMode(pMQ2, INPUT);
   pinMode(pACS712, INPUT);
-  pinMode(pReleLuz, OUTPUT);
   pinMode(pRelePorta, OUTPUT);
   pinMode(pReleExaustor, OUTPUT);
 
-
   // Begins
   Serial.begin(9600);
-
 
   dht.begin();
   wifiBegin();
   firebaseBegin();
   beginDateTime();
-
 
   // * Definindo Listener
   if (!Firebase.beginStream(fbdo_extra, "/room/components/door/handleopen")) {
@@ -248,9 +239,11 @@ void setup() {
 // > Loop
 void loop() {
   unsigned long currentMillis = millis();
-  // ? Lê o sensor PIR | Caso o valor seja HIGH (movimento) define o rele da luz como HIGH caso não possua movimento define o rele da luz como LOW
-  sPIR = digitalRead(pPIR);
-  digitalWrite(pReleLuz, sPIR);
+  // ? Caso exista algum alerta aberto o exaustor deve ser ligado, do contrário desligue
+  if (AlertFlag_MQ2 || AlertFlag_DHT)
+    digitalWrite(pReleExaustor, 1);
+  else
+    digitalWrite(pReleExaustor, 0);
 
   // * lê o MQ2 e exibe seu valor no Serial somente caso a diferença for maior que 1% da leitura passada
   if (abs(analogRead(pMQ2) - vMQ2) >= umPorCento) {
@@ -258,23 +251,20 @@ void loop() {
     Serial.println("MQ2 - Valor: " + String(vMQ2));
     setFloatValue("/room/components/mq-2", float(vMQ2));
     // ? Caso o valor medido for maior que o valor de alerta: Ative o alerta e ligue o exaustor
-    if (vMQ2 >= vAlertMQ2 && !AlertFlag && (unsigned long)(currentMillis - previousMillis_alertMQ2) >= intervaloAlert) {
+    if (vMQ2 >= vAlertMQ2 && !AlertFlag_MQ2 && (unsigned long)(currentMillis - previousMillis_alertMQ2) >= intervaloAlert) {
       Serial.println("ALERTA!!!! Sensor MQ2 Detectou um pico na leitura");
-      AlertFlag = true;
-      digitalWrite(pReleExaustor, 1);
+      AlertFlag_MQ2 = true;
       openNotification("fire");
     }
     // ? Caso o valor medido não for maior que o valor de alerta: Verifique se existe um Alerta aberto: Feche o alerta
-    else if (vMQ2 <= vAlertMQ2 && AlertFlag) {
-      AlertFlag = false;
+    else if (vMQ2 <= vAlertMQ2 && AlertFlag_MQ2) {
       Serial.println("Alerta Sensor MQ2 - Fechado");
-      digitalWrite(pReleExaustor, 0);
+      AlertFlag_MQ2 = false;
       currentMillis = previousMillis_alertMQ2;
     }
   }
 
-
-  // ?
+  // ? Verifica se já esta na hora de ler o sensor DHT11
   if ((unsigned long)(currentMillis - previousMillis_dht11) >= intervaloDHT) {
     vUmid = dht.readHumidity();
     vTemp = dht.readTemperature();
@@ -284,12 +274,22 @@ void loop() {
       setFloatValue("/room/components/dht11/temp", vTemp);  // * Grava Temperatura no Banco
       setFloatValue("/room/components/dht11/humd", vUmid);  // * Grava Umidade no Banco
     }
+    if (vTemp >= vAlertTemp) {
+      Serial.println("ALERTA!!!! Sensor DHT Detectou um pico na leitura");
+      AlertFlag_DHT = true;
+      openNotification("temp");
+    } else if (vTemp <= vAlertTemp && AlertFlag_DHT) {
+      Serial.println("Alerta Sensor DHT - Fechado");
+      AlertFlag_DHT = false;
+    }
     previousMillis_dht11 = currentMillis;
   }
 
-  // ?
+  // ? Verifica se já esta na hora de ler o sensor SM15
   if ((unsigned long)(currentMillis - previousMillis_sm15) >= intervaloSM15) {
+    // ? Veficia se o estado atual do sensor é diferente do ultimo estado
     if (digitalRead(pSM15) != sSM15) {
+      // * Altera o estado e grava no firebase
       sSM15 = digitalRead(pSM15);
       Serial.println("Porta: " + String(!sSM15));
       setBoolValue("/room/components/door/isopen", !sSM15);

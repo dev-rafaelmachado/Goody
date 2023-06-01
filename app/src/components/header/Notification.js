@@ -1,7 +1,13 @@
 import { useState } from "react";
 import Style from "../../css/components/notification.module.css";
 
-import { BellSimple, CaretLeft, FireSimple, XCircle } from "@phosphor-icons/react";
+import {
+  BellSimple,
+  CaretLeft,
+  FireSimple,
+  ThermometerHot,
+  XCircle,
+} from "@phosphor-icons/react";
 import useFirebaseValue from "../../hooks/useFirebaseValue";
 
 import { ref, set, remove } from "firebase/database";
@@ -13,6 +19,11 @@ const Notification = () => {
       <FireSimple size={"3rem"} weight="fill" />,
       "Principio de fogo",
       "foi registrado um pico no sensor de fumaça.",
+    ],
+    temp: [
+      <ThermometerHot size={"3rem"} weight="fill" />,
+      "Alta Temperatura",
+      "foi registrado um pico no sensor de temperatura.",
     ],
   };
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -33,9 +44,7 @@ const Notification = () => {
 
   const removeNotf = (key) => {
     remove(ref(db, `/room/notifications/${key}`))
-      .then(() => {
-        
-      })
+      .then(() => {})
       .catch((error) => {
         console.error("Erro ao remover coleção: ", error);
       });
@@ -65,13 +74,20 @@ const Notification = () => {
                   <div>
                     <h2>{notifTemplate[dataNotif[key]["type"]][1]}</h2>
                     <p>
-                      As {dataNotif[key]["time"]} {" "}
+                      As {dataNotif[key]["time"]}{" "}
                       {notifTemplate[dataNotif[key]["type"]][2]}
                     </p>
                     {dataNotif[key]["isviewed"] === false && (
                       <div className={Style.noviewed}></div>
                     )}
-                    <XCircle onClick={() => {removeNotf(key)}} className={Style.X} size={"1.4rem"} color="#fcfcfc" />
+                    <XCircle
+                      onClick={() => {
+                        removeNotf(key);
+                      }}
+                      className={Style.X}
+                      size={"1.4rem"}
+                      color="#fcfcfc"
+                    />
                   </div>
                 </div>
               );
